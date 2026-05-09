@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DroidForge IDE — Mobile Android Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #111118;
+  --bg-tertiary: #16161f;
+  --bg-panel: #13131a;
+  --bg-hover: #1e1e2e;
+  --bg-active: #252535;
+  --accent: #7c3aed;
+  --accent-glow: rgba(124,58,237,0.3);
+  --accent-2: #06b6d4;
+  --accent-3: #10b981;
+  --accent-warn: #f59e0b;
+  --accent-err: #ef4444;
+  --text-primary: #e8e8f0;
+  --text-secondary: #8888aa;
+  --text-muted: #555570;
+  --border: #1f1f30;
+  --border-light: #2a2a40;
+  --syntax-kw: #c084fc;
+  --syntax-str: #86efac;
+  --syntax-num: #fbbf24;
+  --syntax-fn: #67e8f9;
+  --syntax-comment: #555577;
+  --syntax-type: #fb923c;
+  --sidebar-w: 52px;
+  --panel-w: 260px;
+  --header-h: 44px;
+  --tab-h: 36px;
+  --status-h: 24px;
+  --radius: 6px;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-ui: 'Space Grotesk', sans-serif;
+  --font-display: 'Syne', sans-serif;
+}
+[data-theme="light"] {
+  --bg-primary: #f8f8fc;
+  --bg-secondary: #f0f0f8;
+  --bg-tertiary: #e8e8f4;
+  --bg-panel: #ececf8;
+  --bg-hover: #e0e0ef;
+  --bg-active: #d8d8ec;
+  --text-primary: #1a1a2e;
+  --text-secondary: #555580;
+  --text-muted: #9999bb;
+  --border: #d8d8ec;
+  --border-light: #e0e0f0;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:var(--font-ui);background:var(--bg-primary);color:var(--text-primary);}
+
+/* ── SCROLLBARS ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:var(--text-muted);}
+
+/* ── APP SHELL ── */
+#app{display:grid;grid-template-rows:var(--header-h) 1fr var(--status-h);grid-template-columns:var(--sidebar-w) var(--panel-w) 1fr 0px;height:100vh;transition:grid-template-columns .2s;}
+#app.right-panel-open{grid-template-columns:var(--sidebar-w) var(--panel-w) 1fr 300px;}
+#app.panel-collapsed{grid-template-columns:var(--sidebar-w) 0px 1fr 0px;}
+
+/* ── HEADER ── */
+#header{grid-column:1/-1;grid-row:1;display:flex;align-items:center;background:var(--bg-secondary);border-bottom:1px solid var(--border);z-index:100;padding:0 12px;gap:8px;}
+.logo{display:flex;align-items:center;gap:8px;margin-right:12px;}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent-2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.logo-text{font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:-0.02em;background:linear-gradient(135deg,#c084fc,#67e8f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.header-project{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius);padding:4px 10px;cursor:pointer;}
+.header-project:hover{border-color:var(--accent);}
+.header-spacer{flex:1;}
+.header-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--radius);border:1px solid var(--border);background:transparent;color:var(--text-secondary);font-size:11px;font-family:var(--font-ui);cursor:pointer;transition:.15s;white-space:nowrap;}
+.header-btn:hover{color:var(--text-primary);border-color:var(--border-light);background:var(--bg-hover);}
+.header-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.header-btn.primary:hover{background:#6d28d9;box-shadow:0 0 16px var(--accent-glow);}
+.header-btn.success{background:var(--accent-3);border-color:var(--accent-3);color:#fff;}
+.header-btn.warn{background:var(--accent-warn);border-color:var(--accent-warn);color:#000;}
+.build-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);padding:0 8px;}
+.build-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);}
+.build-dot.building{background:var(--accent-warn);animation:pulse 1s infinite;}
+.build-dot.success{background:var(--accent-3);}
+.build-dot.error{background:var(--accent-err);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ── SIDEBAR ICONS ── */
+#sidebar{grid-column:1;grid-row:2/3;background:var(--bg-secondary);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px;z-index:90;}
+.sb-btn{width:40px;height:40px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);border:none;background:transparent;transition:.15s;position:relative;font-size:16px;}
+.sb-btn:hover{color:var(--text-primary);background:var(--bg-hover);}
+.sb-btn.active{color:var(--accent);background:var(--bg-active);}
+.sb-btn.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:20px;background:var(--accent);border-radius:0 2px 2px 0;}
+.sb-spacer{flex:1;}
+.sb-tooltip{position:absolute;left:52px;background:var(--bg-active);color:var(--text-primary);font-size:11px;padding:4px 8px;border-radius:4px;white-space:nowrap;pointer-events:none;opacity:0;transition:.1s;z-index:999;border:1px solid var(--border-light);}
+.sb-btn:hover .sb-tooltip{opacity:1;}
+
+/* ── PANEL ── */
+#panel{grid-column:2;grid-row:2/3;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .2s;}
+.panel-section{display:none;flex-direction:column;height:100%;overflow:hidden;}
+.panel-section.active{display:flex;}
+.panel-header{padding:10px 12px;font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--text-muted);text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.panel-header-actions{display:flex;gap:4px;}
+.panel-icon-btn{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;color:var(--text-muted);border:none;background:transparent;font-size:12px;}
+.panel-icon-btn:hover{color:var(--text-primary);background:var(--bg-hover);}
+
+/* ── FILE TREE ── */
+#file-tree{flex:1;overflow-y:auto;padding:4px 0;}
+.tree-item{display:flex;align-items:center;gap:6px;padding:3px 8px;cursor:pointer;font-size:12px;color:var(--text-secondary);border-radius:4px;margin:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tree-item:hover{background:var(--bg-hover);color:var(--text-primary);}
+.tree-item.active{background:var(--bg-active);color:var(--text-primary);}
+.tree-item.folder{font-weight:500;}
+.tree-item .ti-icon{font-size:13px;flex-shrink:0;width:16px;text-align:center;}
+.tree-item .ti-name{overflow:hidden;text-overflow:ellipsis;}
+.tree-indent{padding-left:16px;}
+.tree-indent2{padding-left:32px;}
+.tree-indent3{padding-left:48px;}
+.file-icon-kt{color:#7c67fa;}
+.file-icon-java{color:#f97316;}
+.file-icon-xml{color:#22d3ee;}
+.file-icon-json{color:#fbbf24;}
+.file-icon-gradle{color:#86efac;}
+.file-icon-md{color:#e879f9;}
+.file-icon-folder{color:#60a5fa;}
+.file-icon-res{color:#34d399;}
+
+/* ── EDITOR AREA ── */
+#editor-area{grid-column:3;grid-row:2/3;display:flex;flex-direction:column;background:var(--bg-primary);overflow:hidden;}
+
+/* ── TABS ── */
+#tabs-bar{height:var(--tab-h);display:flex;align-items:center;background:var(--bg-secondary);border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0;}
+#tabs-bar::-webkit-scrollbar{height:0;}
+.tab{display:flex;align-items:center;gap:6px;padding:0 14px;height:100%;font-size:12px;color:var(--text-muted);cursor:pointer;white-space:nowrap;border-right:1px solid var(--border);flex-shrink:0;transition:.1s;}
+.tab:hover{color:var(--text-primary);background:var(--bg-hover);}
+.tab.active{color:var(--text-primary);background:var(--bg-primary);border-bottom:2px solid var(--accent);}
+.tab-close{opacity:0;width:14px;height:14px;display:flex;align-items:center;justify-content:center;border-radius:3px;font-size:10px;}
+.tab:hover .tab-close{opacity:.6;}
+.tab-close:hover{opacity:1!important;background:var(--bg-active);}
+.tab-icon{font-size:12px;}
+
+/* ── CODE EDITOR ── */
+#editor-container{flex:1;position:relative;overflow:hidden;}
+.editor-view{position:absolute;inset:0;display:none;flex-direction:column;}
+.editor-view.active{display:flex;}
+
+/* Monaco-style code editor */
+.code-editor{flex:1;overflow:auto;padding:12px 0;display:flex;font-family:var(--font-mono);font-size:13px;line-height:1.6;}
+.line-numbers{width:48px;flex-shrink:0;text-align:right;padding-right:12px;color:var(--text-muted);font-size:12px;user-select:none;border-right:1px solid var(--border);margin-right:0;}
+.code-lines{flex:1;padding-left:16px;outline:none;white-space:pre;overflow:visible;}
+.code-lines:focus{outline:none;}
+.code-line{min-height:20.8px;position:relative;}
+.code-line:hover{background:rgba(255,255,255,.02);}
+.code-line.current-line{background:rgba(255,255,255,.04);}
+
+/* Syntax highlighting */
+.kw{color:var(--syntax-kw);}
+.str{color:var(--syntax-str);}
+.num{color:var(--syntax-num);}
+.fn{color:var(--syntax-fn);}
+.cm{color:var(--syntax-comment);font-style:italic;}
+.ty{color:var(--syntax-type);}
+.op{color:var(--text-secondary);}
+.an{color:#fde68a;}
+
+/* ── BREADCRUMB ── */
+.editor-breadcrumb{height:28px;display:flex;align-items:center;padding:0 16px;gap:4px;font-size:11px;color:var(--text-muted);border-bottom:1px solid var(--border);flex-shrink:0;overflow:hidden;}
+.bc-sep{color:var(--text-muted);}
+
+/* ── BOTTOM PANEL ── */
+#bottom-panel{height:200px;border-top:1px solid var(--border);display:flex;flex-direction:column;transition:height .2s;flex-shrink:0;}
+#bottom-panel.collapsed{height:28px;}
+.bottom-tabs{display:flex;align-items:center;height:28px;background:var(--bg-secondary);border-bottom:1px solid var(--border);flex-shrink:0;}
+.bottom-tab{padding:0 14px;height:100%;display:flex;align-items:center;font-size:11px;color:var(--text-muted);cursor:pointer;gap:5px;border-right:1px solid var(--border);}
+.bottom-tab:hover{color:var(--text-primary);}
+.bottom-tab.active{color:var(--text-primary);border-bottom:2px solid var(--accent);}
+.bottom-content{flex:1;overflow-y:auto;font-family:var(--font-mono);font-size:12px;line-height:1.6;padding:8px 12px;}
+.log-line{display:flex;gap:8px;align-items:flex-start;}
+.log-line .ts{color:var(--text-muted);flex-shrink:0;font-size:10px;margin-top:2px;}
+.log-line.info .msg{color:var(--text-secondary);}
+.log-line.success .msg{color:var(--accent-3);}
+.log-line.warn .msg{color:var(--accent-warn);}
+.log-line.error .msg{color:var(--accent-err);}
+.log-line.system .msg{color:var(--accent-2);}
+.log-line.build .msg{color:var(--syntax-kw);}
+.bottom-resize{height:4px;background:transparent;cursor:ns-resize;flex-shrink:0;}
+.bottom-resize:hover{background:var(--accent);}
+
+/* ── STATUS BAR ── */
+#status-bar{grid-column:1/-1;grid-row:3;background:var(--accent);display:flex;align-items:center;padding:0 12px;gap:16px;font-size:10px;font-family:var(--font-mono);color:rgba(255,255,255,.9);}
+.status-item{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.status-item:hover{color:#fff;}
+.status-spacer{flex:1;}
+
+/* ── RIGHT PANEL (AI / EMULATOR) ── */
+#right-panel{grid-column:4;grid-row:2/3;background:var(--bg-panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.rp-header{padding:10px 14px;font-size:11px;font-weight:600;color:var(--text-secondary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.rp-body{flex:1;overflow-y:auto;padding:12px;}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:12px;width:min(560px,95vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:var(--font-display);font-weight:700;font-size:16px;}
+.modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;color:var(--text-muted);border:none;background:transparent;font-size:16px;}
+.modal-close:hover{background:var(--bg-hover);color:var(--text-primary);}
+.modal-body{padding:20px;overflow-y:auto;flex:1;}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+
+/* ── FORMS ── */
+.form-group{margin-bottom:16px;}
+.form-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;display:block;}
+.form-input{width:100%;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text-primary);font-size:13px;font-family:var(--font-ui);outline:none;transition:.15s;}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+.form-select{width:100%;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;color:var(--text-primary);font-size:13px;font-family:var(--font-ui);outline:none;}
+.form-select:focus{border-color:var(--accent);}
+
+/* ── TEMPLATE GRID ── */
+.template-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+.template-card{border:2px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:6px;}
+.template-card:hover{border-color:var(--border-light);background:var(--bg-hover);}
+.template-card.selected{border-color:var(--accent);background:rgba(124,58,237,.1);}
+.template-icon{font-size:24px;margin-bottom:4px;}
+.template-name{font-size:12px;font-weight:600;}
+.template-desc{font-size:11px;color:var(--text-muted);}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 16px;border-radius:var(--radius);font-size:12px;font-family:var(--font-ui);font-weight:600;cursor:pointer;transition:.15s;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:#6d28d9;box-shadow:0 0 12px var(--accent-glow);}
+.btn-secondary{background:var(--bg-tertiary);color:var(--text-secondary);border-color:var(--border);}
+.btn-secondary:hover{background:var(--bg-hover);color:var(--text-primary);}
+.btn-danger{background:var(--accent-err);color:#fff;border-color:var(--accent-err);}
+.btn-success{background:var(--accent-3);color:#fff;border-color:var(--accent-3);}
+
+/* ── EMULATOR ── */
+#emulator-screen{background:#000;border-radius:8px;overflow:hidden;position:relative;aspect-ratio:9/19;max-height:380px;margin:0 auto;border:2px solid var(--border-light);display:flex;align-items:center;justify-content:center;}
+.emulator-frame{width:100%;height:100%;display:flex;flex-direction:column;background:#1a1a2e;}
+.emulator-status-bar{height:24px;background:#000;display:flex;align-items:center;padding:0 12px;gap:4px;font-size:9px;color:#aaa;justify-content:space-between;flex-shrink:0;}
+.emulator-content{flex:1;overflow:hidden;position:relative;}
+.android-home{width:100%;height:100%;background:linear-gradient(160deg,#0f0f1e,#1a1040);display:flex;flex-direction:column;padding:12px;}
+.android-time{font-size:28px;font-weight:700;color:#fff;text-align:center;margin-top:20px;font-family:var(--font-mono);}
+.android-date{font-size:12px;color:rgba(255,255,255,.6);text-align:center;margin-bottom:24px;}
+.android-apps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:0 4px;}
+.android-app{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.app-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.app-label{font-size:9px;color:rgba(255,255,255,.8);text-align:center;}
+.emulator-nav{height:36px;background:#000;display:flex;align-items:center;justify-content:space-around;border-top:1px solid #222;flex-shrink:0;}
+.nav-btn{color:#aaa;font-size:14px;cursor:pointer;padding:6px;}
+.nav-btn:hover{color:#fff;}
+
+/* ── TERMINAL ── */
+.terminal-body{font-family:var(--font-mono);font-size:12px;color:#e2e8f0;height:100%;overflow-y:auto;padding:8px;}
+.term-line{line-height:1.6;display:flex;gap:6px;}
+.term-prompt{color:var(--accent-3);flex-shrink:0;}
+.term-cmd{color:var(--text-primary);}
+.term-output{color:var(--text-secondary);padding-left:14px;}
+.term-input-row{display:flex;gap:6px;align-items:center;margin-top:4px;}
+.term-input{flex:1;background:transparent;border:none;color:var(--text-primary);font-family:var(--font-mono);font-size:12px;outline:none;caret-color:var(--accent);}
+
+/* ── AI PANEL ── */
+.ai-chat{display:flex;flex-direction:column;gap:10px;}
+.ai-msg{padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.6;}
+.ai-msg.user{background:var(--bg-active);color:var(--text-primary);}
+.ai-msg.ai{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:var(--text-primary);}
+.ai-msg code{font-family:var(--font-mono);font-size:11px;background:var(--bg-primary);padding:1px 4px;border-radius:3px;color:var(--accent-2);}
+.ai-input-row{display:flex;gap:6px;padding:10px 0 0;border-top:1px solid var(--border);margin-top:auto;flex-shrink:0;}
+.ai-input{flex:1;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text-primary);font-size:12px;font-family:var(--font-ui);outline:none;resize:none;}
+.ai-input:focus{border-color:var(--accent);}
+.ai-send{width:32px;height:32px;background:var(--accent);border:none;border-radius:var(--radius);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.ai-send:hover{background:#6d28d9;}
+
+/* ── GIT PANEL ── */
+.git-status-item{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:4px;font-size:11px;color:var(--text-secondary);}
+.git-status-item:hover{background:var(--bg-hover);}
+.git-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;}
+.git-M{background:rgba(251,191,36,.2);color:#fbbf24;}
+.git-A{background:rgba(16,185,129,.2);color:#10b981;}
+.git-D{background:rgba(239,68,68,.2);color:#ef4444;}
+.git-U{background:rgba(124,58,237,.2);color:#c084fc;}
+
+/* ── SDK PANEL ── */
+.sdk-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;}
+.sdk-info{flex:1;}
+.sdk-name{font-size:12px;font-weight:600;}
+.sdk-desc{font-size:10px;color:var(--text-muted);}
+.sdk-badge{font-size:10px;padding:2px 8px;border-radius:20px;}
+.sdk-installed{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3);}
+.sdk-available{background:var(--bg-tertiary);color:var(--text-muted);border:1px solid var(--border);}
+
+/* ── PROGRESS ── */
+.progress-bar{height:4px;background:var(--bg-tertiary);border-radius:2px;overflow:hidden;margin:4px 0;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:2px;transition:width .3s;}
+
+/* ── DRAG & DROP ── */
+.drop-zone{border:2px dashed var(--border-light);border-radius:8px;padding:24px;text-align:center;color:var(--text-muted);cursor:pointer;transition:.2s;}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:rgba(124,58,237,.05);color:var(--text-secondary);}
+.drop-icon{font-size:32px;margin-bottom:8px;}
+
+/* ── SEARCH PANEL ── */
+.search-input-wrap{padding:10px 12px;border-bottom:1px solid var(--border);}
+.search-result{padding:4px 12px;cursor:pointer;font-size:11px;}
+.search-result:hover{background:var(--bg-hover);}
+.search-file{color:var(--text-muted);font-size:10px;margin-bottom:2px;}
+.search-match{font-family:var(--font-mono);color:var(--text-primary);}
+.search-match mark{background:rgba(251,191,36,.3);color:var(--accent-warn);border-radius:2px;}
+
+/* ── CONTEXT MENU ── */
+.ctx-menu{position:fixed;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:8px;padding:4px;z-index:2000;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.ctx-menu.hidden{display:none;}
+.ctx-item{padding:6px 12px;font-size:12px;cursor:pointer;border-radius:4px;color:var(--text-secondary);display:flex;align-items:center;gap:8px;}
+.ctx-item:hover{background:var(--bg-hover);color:var(--text-primary);}
+.ctx-sep{height:1px;background:var(--border);margin:3px 0;}
+.ctx-item.danger{color:var(--accent-err);}
+
+/* ── NOTIFICATION ── */
+.notif-wrap{position:fixed;bottom:32px;right:16px;z-index:3000;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.notif{background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:8px;padding:10px 14px;font-size:12px;max-width:300px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:slideIn .2s ease;pointer-events:all;}
+.notif.success{border-left:3px solid var(--accent-3);}
+.notif.error{border-left:3px solid var(--accent-err);}
+.notif.warn{border-left:3px solid var(--accent-warn);}
+.notif.info{border-left:3px solid var(--accent-2);}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0;}to{transform:none;opacity:1;}}
+
+/* ── LAYOUT DESIGNER ── */
+.layout-canvas{background:#fff;border-radius:4px;position:relative;overflow:hidden;min-height:200px;border:1px solid #ccc;}
+.layout-widget{position:absolute;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:move;border:1px dashed rgba(124,58,237,.5);}
+.layout-widget.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow);}
+.layout-palette{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.palette-item{padding:6px 8px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:4px;font-size:10px;cursor:grab;text-align:center;color:var(--text-secondary);}
+.palette-item:hover{border-color:var(--accent);color:var(--text-primary);}
+
+/* ── TOOLTIPS / AUTOCOMPLETE ── */
+.autocomplete{position:absolute;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:var(--radius);padding:4px;z-index:500;min-width:200px;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.ac-item{padding:4px 10px;font-size:12px;font-family:var(--font-mono);cursor:pointer;border-radius:3px;color:var(--text-secondary);display:flex;align-items:center;gap:8px;}
+.ac-item:hover,.ac-item.selected{background:var(--bg-hover);color:var(--text-primary);}
+.ac-kind{font-size:9px;background:var(--bg-active);padding:1px 4px;border-radius:3px;color:var(--text-muted);}
+
+/* ── MOBILE TOOLBAR ── */
+#mobile-toolbar{display:none;position:fixed;bottom:28px;left:0;right:0;background:var(--bg-secondary);border-top:1px solid var(--border);z-index:200;padding:4px 8px;gap:2px;overflow-x:auto;}
+.mt-btn{padding:6px 12px;border-radius:4px;font-size:11px;font-family:var(--font-mono);color:var(--text-secondary);background:var(--bg-tertiary);border:1px solid var(--border);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.mt-btn:hover{background:var(--bg-hover);color:var(--text-primary);}
+
+@media(max-width:768px){
+  :root{--panel-w:0px;--sidebar-w:44px;}
+  #app{grid-template-columns:var(--sidebar-w) 0px 1fr 0px!important;}
+  #panel{width:100%;position:fixed;top:var(--header-h);left:0;right:0;bottom:var(--status-h);z-index:150;display:none;}
+  #panel.mobile-open{display:flex;}
+  #mobile-toolbar{display:flex;}
+  #bottom-panel{height:150px;}
+  .header-btn span{display:none;}
+  .logo-text{display:none;}
+  #app.right-panel-open{grid-template-columns:var(--sidebar-w) 0px 1fr 0px!important;}
+  #right-panel{position:fixed;top:var(--header-h);right:0;bottom:var(--status-h);width:100%;z-index:140;display:none;}
+  #right-panel.mobile-open{display:flex;}
+}
+
+/* ── WELCOME SCREEN ── */
+#welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--text-muted);padding:20px;}
+.welcome-logo{font-size:48px;margin-bottom:8px;filter:drop-shadow(0 0 20px var(--accent-glow));}
+.welcome-title{font-family:var(--font-display);font-size:22px;font-weight:800;background:linear-gradient(135deg,#c084fc,#67e8f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.welcome-sub{font-size:13px;color:var(--text-muted);margin-bottom:16px;}
+.welcome-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+
+/* ── GUTTER & BREAKPOINTS ── */
+.gutter{width:16px;flex-shrink:0;position:relative;}
+.breakpoint{width:8px;height:8px;background:var(--accent-err);border-radius:50%;position:absolute;right:2px;top:6px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- NOTIFICATION CONTAINER -->
+<div class="notif-wrap" id="notif-wrap"></div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu hidden" id="ctx-menu">
+  <div class="ctx-item" onclick="ctxAction('new-file')"><i class="fa fa-file-plus"></i> New File</div>
+  <div class="ctx-item" onclick="ctxAction('new-folder')"><i class="fa fa-folder-plus"></i> New Folder</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="ctxAction('rename')"><i class="fa fa-pen"></i> Rename</div>
+  <div class="ctx-item" onclick="ctxAction('copy')"><i class="fa fa-copy"></i> Copy</div>
+  <div class="ctx-item" onclick="ctxAction('paste')"><i class="fa fa-paste"></i> Paste</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" onclick="ctxAction('delete')"><i class="fa fa-trash"></i> Delete</div>
+</div>
+
+<!-- NEW PROJECT MODAL -->
+<div class="modal-overlay hidden" id="new-project-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🚀 New Android Project</div>
+      <button class="modal-close" onclick="closeModal('new-project-modal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Choose Template</label>
+        <div class="template-grid" id="template-grid">
+          <div class="template-card selected" data-tpl="empty" onclick="selectTemplate(this,'empty')">
+            <div class="template-icon">📱</div>
+            <div class="template-name">Empty Activity</div>
+            <div class="template-desc">Blank canvas with MainActivity</div>
+          </div>
+          <div class="template-card" data-tpl="login" onclick="selectTemplate(this,'login')">
+            <div class="template-icon">🔐</div>
+            <div class="template-name">Login App</div>
+            <div class="template-desc">Auth UI with Firebase ready</div>
+          </div>
+          <div class="template-card" data-tpl="list" onclick="selectTemplate(this,'list')">
+            <div class="template-icon">📋</div>
+            <div class="template-name">List + Detail</div>
+            <div class="template-desc">RecyclerView navigation pattern</div>
+          </div>
+          <div class="template-card" data-tpl="ecommerce" onclick="selectTemplate(this,'ecommerce')">
+            <div class="template-icon">🛒</div>
+            <div class="template-name">E-Commerce</div>
+            <div class="template-desc">Shop UI with cart & products</div>
+          </div>
+          <div class="template-card" data-tpl="maps" onclick="selectTemplate(this,'maps')">
+            <div class="template-icon">🗺️</div>
+            <div class="template-name">Maps App</div>
+            <div class="template-desc">Google Maps integration</div>
+          </div>
+          <div class="template-card" data-tpl="chat" onclick="selectTemplate(this,'chat')">
+            <div class="template-icon">💬</div>
+            <div class="template-name">Chat App</div>
+            <div class="template-desc">Messaging UI with Firebase</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">App Name</label>
+        <input class="form-input" id="proj-name" type="text" placeholder="My Awesome App" value="MyApp">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Package Name</label>
+        <input class="form-input" id="proj-pkg" type="text" placeholder="com.example.myapp" value="com.example.myapp">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Save Location</label>
+        <input class="form-input" id="proj-loc" type="text" value="/projects/">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Min SDK</label>
+          <select class="form-select" id="proj-minsdk">
+            <option value="21">API 21 (Android 5.0)</option>
+            <option value="24">API 24 (Android 7.0)</option>
+            <option value="26" selected>API 26 (Android 8.0)</option>
+            <option value="28">API 28 (Android 9.0)</option>
+            <option value="30">API 30 (Android 11)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Language</label>
+          <select class="form-select" id="proj-lang">
+            <option value="kotlin" selected>Kotlin</option>
+            <option value="java">Java</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('new-project-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createProject()"><i class="fa fa-rocket"></i> Create Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- BUILD MODAL -->
+<div class="modal-overlay hidden" id="build-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Build APK</div>
+      <button class="modal-close" onclick="closeModal('build-modal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Build Type</label>
+        <select class="form-select" id="build-type">
+          <option value="debug">Debug (Fast, unsigned)</option>
+          <option value="release">Release (Signed APK)</option>
+        </select>
+      </div>
+      <div id="build-progress-section" style="display:none;">
+        <div style="margin-bottom:8px;font-size:12px;color:var(--text-secondary);" id="build-step-label">Starting build...</div>
+        <div class="progress-bar"><div class="progress-fill" id="build-progress" style="width:0%"></div></div>
+        <div style="height:120px;overflow-y:auto;font-family:var(--font-mono);font-size:11px;margin-top:10px;background:var(--bg-primary);border-radius:6px;padding:8px;" id="build-log-inline"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('build-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="startBuild()" id="build-btn"><i class="fa fa-hammer"></i> Build APK</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay hidden" id="settings-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ IDE Settings</div>
+      <button class="modal-close" onclick="closeModal('settings-modal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Theme</label>
+        <select class="form-select" onchange="setTheme(this.value)">
+          <option value="dark">Dark (Default)</option>
+          <option value="light">Light</option>
+          <option value="monokai">Monokai</option>
+          <option value="dracula">Dracula</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Font Size</label>
+        <select class="form-select" onchange="setFontSize(this.value)">
+          <option value="11">11px</option>
+          <option value="12">12px</option>
+          <option value="13" selected>13px</option>
+          <option value="14">14px</option>
+          <option value="16">16px</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">AI Assistant API Key</label>
+        <input class="form-input" type="password" placeholder="sk-ant-... (stored locally)" id="api-key-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Build Server URL</label>
+        <input class="form-input" type="text" placeholder="https://build.droidforge.dev" value="https://build.droidforge.dev">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Emulator Provider</label>
+        <select class="form-select">
+          <option value="cloud">Cloud Emulator (Android 14)</option>
+          <option value="genycloud">Genymotion Cloud</option>
+          <option value="firebase">Firebase Test Lab</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('settings-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()"><i class="fa fa-save"></i> Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay hidden" id="import-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📦 Import Project</div>
+      <button class="modal-close" onclick="closeModal('import-modal')"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="drop-zone" id="import-drop" onclick="document.getElementById('import-file').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+        <div class="drop-icon">📂</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px;">Drop your project ZIP here</div>
+        <div style="font-size:12px;">or click to browse files</div>
+        <input type="file" id="import-file" accept=".zip,.tar.gz" style="display:none" onchange="handleFileSelect(this)">
+      </div>
+      <div style="margin-top:12px;">
+        <div class="form-label" style="margin-bottom:8px;">Or clone from Git</div>
+        <input class="form-input" type="text" placeholder="https://github.com/user/repo.git" id="git-clone-url" style="margin-bottom:8px;">
+        <button class="btn btn-secondary" style="width:100%" onclick="cloneRepo()"><i class="fa-brands fa-git-alt"></i> Clone Repository</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('import-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="importProject()"><i class="fa fa-file-import"></i> Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ MAIN APP ═══════════════════════════ -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header id="header">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div class="logo-text">DroidForge</div>
+    </div>
+    <div class="header-project" onclick="showModal('new-project-modal')">
+      <i class="fa fa-folder-open" style="color:var(--accent-2)"></i>
+      <span id="project-name-display">MyApp</span>
+      <i class="fa fa-chevron-down" style="font-size:10px;color:var(--text-muted)"></i>
+    </div>
+    <div class="build-status">
+      <div class="build-dot" id="build-indicator"></div>
+      <span id="build-status-text">Ready</span>
+    </div>
+    <div class="header-spacer"></div>
+    <button class="header-btn" onclick="openGitPanel()"><i class="fa-brands fa-git-alt"></i> <span>Git</span></button>
+    <button class="header-btn" onclick="showModal('import-modal')"><i class="fa fa-file-import"></i> <span>Import</span></button>
+    <button class="header-btn" onclick="exportProject()"><i class="fa fa-file-export"></i> <span>Export</span></button>
+    <button class="header-btn" onclick="toggleEmulator()"><i class="fa fa-mobile-screen"></i> <span>Emulator</span></button>
+    <button class="header-btn warn" onclick="runApp()"><i class="fa fa-play"></i> <span>Run</span></button>
+    <button class="header-btn primary" onclick="showModal('build-modal')"><i class="fa fa-hammer"></i> <span>Build APK</span></button>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <button class="sb-btn active" id="sb-files" onclick="switchPanel('files')">
+      <i class="fa fa-folder-tree"></i>
+      <div class="sb-tooltip">File Explorer</div>
+    </button>
+    <button class="sb-btn" id="sb-search" onclick="switchPanel('search')">
+      <i class="fa fa-magnifying-glass"></i>
+      <div class="sb-tooltip">Search</div>
+    </button>
+    <button class="sb-btn" id="sb-git" onclick="switchPanel('git')">
+      <i class="fa-brands fa-git-alt"></i>
+      <div class="sb-tooltip">Git</div>
+    </button>
+    <button class="sb-btn" id="sb-sdk" onclick="switchPanel('sdk')">
+      <i class="fa fa-microchip"></i>
+      <div class="sb-tooltip">SDK Manager</div>
+    </button>
+    <button class="sb-btn" id="sb-layout" onclick="switchPanel('layout')">
+      <i class="fa fa-object-group"></i>
+      <div class="sb-tooltip">Layout Designer</div>
+    </button>
+    <button class="sb-btn" id="sb-plugins" onclick="switchPanel('plugins')">
+      <i class="fa fa-puzzle-piece"></i>
+      <div class="sb-tooltip">Plugins</div>
+    </button>
+    <div class="sb-spacer"></div>
+    <button class="sb-btn" onclick="toggleAI()">
+      <i class="fa fa-wand-magic-sparkles"></i>
+      <div class="sb-tooltip">AI Assistant</div>
+    </button>
+    <button class="sb-btn" onclick="showModal('settings-modal')">
+      <i class="fa fa-gear"></i>
+      <div class="sb-tooltip">Settings</div>
+    </button>
+    <button class="sb-btn" onclick="toggleTheme()">
+      <i class="fa fa-circle-half-stroke"></i>
+      <div class="sb-tooltip">Toggle Theme</div>
+    </button>
+  </aside>
+
+  <!-- LEFT PANEL -->
+  <div id="panel">
+
+    <!-- FILE EXPLORER -->
+    <div class="panel-section active" id="panel-files">
+      <div class="panel-header">
+        Explorer
+        <div class="panel-header-actions">
+          <button class="panel-icon-btn" onclick="newFile()" title="New File"><i class="fa fa-file-plus"></i></button>
+          <button class="panel-icon-btn" onclick="newFolder()" title="New Folder"><i class="fa fa-folder-plus"></i></button>
+          <button class="panel-icon-btn" onclick="collapseAll()" title="Collapse All"><i class="fa fa-compress"></i></button>
+          <button class="panel-icon-btn" onclick="refreshTree()" title="Refresh"><i class="fa fa-rotate"></i></button>
+        </div>
+      </div>
+      <div id="file-tree"></div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="panel-section" id="panel-search">
+      <div class="panel-header">Search</div>
+      <div class="search-input-wrap">
+        <input class="form-input" type="text" placeholder="Search files..." id="search-query" oninput="doSearch(this.value)" style="font-size:12px;padding:6px 10px;">
+      </div>
+      <div id="search-results" style="flex:1;overflow-y:auto;"></div>
+    </div>
+
+    <!-- GIT -->
+    <div class="panel-section" id="panel-git">
+      <div class="panel-header">
+        Source Control
+        <div class="panel-header-actions">
+          <button class="panel-icon-btn" onclick="gitCommit()" title="Commit"><i class="fa fa-check"></i></button>
+          <button class="panel-icon-btn" onclick="gitPush()" title="Push"><i class="fa fa-upload"></i></button>
+          <button class="panel-icon-btn" onclick="gitPull()" title="Pull"><i class="fa fa-download"></i></button>
+        </div>
+      </div>
+      <div style="padding:10px 12px;flex:1;overflow-y:auto;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">CHANGES (3)</div>
+        <div class="git-status-item"><span class="git-badge git-M">M</span><span>MainActivity.kt</span></div>
+        <div class="git-status-item"><span class="git-badge git-A">A</span><span>LoginActivity.kt</span></div>
+        <div class="git-status-item"><span class="git-badge git-M">M</span><span>activity_main.xml</span></div>
+        <div style="margin-top:16px;font-size:11px;color:var(--text-muted);margin-bottom:8px;">BRANCH</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:8px;">
+          <i class="fa fa-code-branch" style="color:var(--accent)"></i>
+          <span>main</span>
+        </div>
+        <input class="form-input" style="font-size:11px;padding:6px 8px;margin-bottom:8px;" placeholder="Commit message..." id="git-commit-msg">
+        <button class="btn btn-primary" style="width:100%;font-size:11px;" onclick="gitCommit()"><i class="fa fa-check"></i> Commit All</button>
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button class="btn btn-secondary" style="font-size:11px;" onclick="gitPush()"><i class="fa fa-upload"></i> Push</button>
+          <button class="btn btn-secondary" style="font-size:11px;" onclick="gitPull()"><i class="fa fa-download"></i> Pull</button>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text-muted);margin-bottom:6px;">RECENT COMMITS</div>
+        <div style="font-size:10px;font-family:var(--font-mono);color:var(--text-secondary);line-height:1.8;">
+          <div><span style="color:var(--accent)">a3f2c1d</span> Initial commit</div>
+          <div><span style="color:var(--accent)">b8e91a2</span> Add MainActivity</div>
+          <div><span style="color:var(--accent)">c12d4f5</span> Setup Gradle</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SDK MANAGER -->
+    <div class="panel-section" id="panel-sdk">
+      <div class="panel-header">SDK Manager</div>
+      <div style="flex:1;overflow-y:auto;padding:10px 12px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">INSTALLED</div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">Android 14 (API 34)</div><div class="sdk-desc">Platform SDK + Tools</div></div>
+          <span class="sdk-badge sdk-installed">Installed</span>
+        </div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">Build Tools 34.0.0</div><div class="sdk-desc">dx, aapt2, zipalign</div></div>
+          <span class="sdk-badge sdk-installed">Installed</span>
+        </div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">Platform Tools</div><div class="sdk-desc">adb, fastboot</div></div>
+          <span class="sdk-badge sdk-installed">Installed</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin:12px 0 8px;">AVAILABLE</div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">Android 15 (API 35)</div><div class="sdk-desc">Latest preview SDK</div></div>
+          <button class="btn btn-primary" style="font-size:10px;padding:4px 10px;" onclick="installSDK('api35')">Install</button>
+        </div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">NDK 27.0</div><div class="sdk-desc">Native C/C++ support</div></div>
+          <button class="btn btn-secondary" style="font-size:10px;padding:4px 10px;" onclick="installSDK('ndk')">Install</button>
+        </div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">CMake 3.22</div><div class="sdk-desc">Build native modules</div></div>
+          <button class="btn btn-secondary" style="font-size:10px;padding:4px 10px;" onclick="installSDK('cmake')">Install</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAYOUT DESIGNER -->
+    <div class="panel-section" id="panel-layout">
+      <div class="panel-header">Layout Designer</div>
+      <div style="flex:1;overflow-y:auto;padding:10px;">
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">Widget Palette</div>
+        <div class="layout-palette">
+          <div class="palette-item" draggable="true" data-widget="Button" ondragstart="dragWidget(event,'Button')">📱 Button</div>
+          <div class="palette-item" draggable="true" data-widget="TextView" ondragstart="dragWidget(event,'TextView')">📝 TextView</div>
+          <div class="palette-item" draggable="true" data-widget="EditText" ondragstart="dragWidget(event,'EditText')">✏️ EditText</div>
+          <div class="palette-item" draggable="true" data-widget="ImageView" ondragstart="dragWidget(event,'ImageView')">🖼️ ImageView</div>
+          <div class="palette-item" draggable="true" data-widget="RecyclerView" ondragstart="dragWidget(event,'RecyclerView')">📋 RecyclerView</div>
+          <div class="palette-item" draggable="true" data-widget="CardView" ondragstart="dragWidget(event,'CardView')">🃏 CardView</div>
+          <div class="palette-item" draggable="true" data-widget="Switch" ondragstart="dragWidget(event,'Switch')">🔀 Switch</div>
+          <div class="palette-item" draggable="true" data-widget="ProgressBar" ondragstart="dragWidget(event,'ProgressBar')">⏳ ProgressBar</div>
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.06em;">Canvas (Phone Preview)</div>
+        <div class="layout-canvas" id="layout-canvas" style="min-height:240px;" ondragover="canvasDragOver(event)" ondrop="canvasDrop(event)">
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999;font-size:12px;flex-direction:column;gap:4px;">
+            <i class="fa fa-arrows-up-down-left-right" style="font-size:20px;"></i>
+            Drop widgets here
+          </div>
+        </div>
+        <button class="btn btn-secondary" style="width:100%;margin-top:8px;font-size:11px;" onclick="generateXMLFromCanvas()"><i class="fa fa-code"></i> Generate XML</button>
+        <button class="btn btn-primary" style="width:100%;margin-top:6px;font-size:11px;" onclick="openLayoutInEditor()"><i class="fa fa-file-code"></i> Open in Editor</button>
+      </div>
+    </div>
+
+    <!-- PLUGINS -->
+    <div class="panel-section" id="panel-plugins">
+      <div class="panel-header">Plugin Marketplace</div>
+      <div style="flex:1;overflow-y:auto;padding:10px;">
+        <input class="form-input" type="text" placeholder="Search plugins..." style="font-size:12px;margin-bottom:10px;">
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">Firebase Assistant</div><div class="sdk-desc">Auto Firebase integration</div></div>
+          <button class="btn btn-primary" style="font-size:10px;padding:4px 10px;" onclick="installPlugin('firebase')">Install</button>
+        </div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">Retrofit Generator</div><div class="sdk-desc">API client code gen</div></div>
+          <button class="btn btn-primary" style="font-size:10px;padding:4px 10px;" onclick="installPlugin('retrofit')">Install</button>
+        </div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">Room DB Helper</div><div class="sdk-desc">Local database setup</div></div>
+          <button class="btn btn-primary" style="font-size:10px;padding:4px 10px;" onclick="installPlugin('room')">Install</button>
+        </div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">Hilt DI</div><div class="sdk-desc">Dependency injection</div></div>
+          <button class="btn btn-secondary" style="font-size:10px;padding:4px 10px;" onclick="showNotif('Installed: Hilt DI','success')">Installed</button>
+        </div>
+        <div class="sdk-item">
+          <div class="sdk-info"><div class="sdk-name">Jetpack Compose UI</div><div class="sdk-desc">Compose component library</div></div>
+          <button class="btn btn-primary" style="font-size:10px;padding:4px 10px;" onclick="installPlugin('compose')">Install</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EDITOR AREA -->
+  <main id="editor-area">
+    <div id="tabs-bar">
+      <div class="tab active" data-file="MainActivity.kt" onclick="activateTab(this,'MainActivity.kt')">
+        <span class="tab-icon" style="color:#7c67fa">K</span>
+        <span>MainActivity.kt</span>
+        <span class="tab-close" onclick="closeTab(event,'MainActivity.kt')"><i class="fa fa-times"></i></span>
+      </div>
+      <div class="tab" data-file="activity_main.xml" onclick="activateTab(this,'activity_main.xml')">
+        <span class="tab-icon" style="color:#22d3ee">X</span>
+        <span>activity_main.xml</span>
+        <span class="tab-close" onclick="closeTab(event,'activity_main.xml')"><i class="fa fa-times"></i></span>
+      </div>
+      <div class="tab" data-file="build.gradle" onclick="activateTab(this,'build.gradle')">
+        <span class="tab-icon" style="color:#86efac">G</span>
+        <span>build.gradle</span>
+        <span class="tab-close" onclick="closeTab(event,'build.gradle')"><i class="fa fa-times"></i></span>
+      </div>
+    </div>
+
+    <div id="editor-container">
+      <!-- WELCOME SCREEN (shown when no file open) -->
+      <div id="welcome" style="display:none;">
+        <div class="welcome-logo">🤖</div>
+        <div class="welcome-title">DroidForge IDE</div>
+        <div class="welcome-sub">Mobile-first Android Development</div>
+        <div class="welcome-actions">
+          <button class="btn btn-primary" onclick="showModal('new-project-modal')"><i class="fa fa-plus"></i> New Project</button>
+          <button class="btn btn-secondary" onclick="showModal('import-modal')"><i class="fa fa-file-import"></i> Import Project</button>
+        </div>
+      </div>
+
+      <!-- MAIN ACTIVITY KT -->
+      <div class="editor-view active" id="view-MainActivity.kt">
+        <div class="editor-breadcrumb">
+          <span>MyApp</span><span class="bc-sep">›</span>
+          <span>app</span><span class="bc-sep">›</span>
+          <span>src</span><span class="bc-sep">›</span>
+          <span>main</span><span class="bc-sep">›</span>
+          <span>java</span><span class="bc-sep">›</span>
+          <span>com.example.myapp</span><span class="bc-sep">›</span>
+          <span style="color:var(--text-primary)">MainActivity.kt</span>
+        </div>
+        <div class="code-editor" id="editor-MainActivity.kt">
+          <div class="gutter" id="gutter-MainActivity.kt"></div>
+          <div class="line-numbers" id="ln-MainActivity.kt"></div>
+          <div class="code-lines" id="code-MainActivity.kt" contenteditable="true" spellcheck="false" oninput="onCodeInput('MainActivity.kt')" onkeydown="onCodeKeyDown(event,'MainActivity.kt')"></div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY MAIN XML -->
+      <div class="editor-view" id="view-activity_main.xml">
+        <div class="editor-breadcrumb">
+          <span>MyApp</span><span class="bc-sep">›</span>
+          <span>app</span><span class="bc-sep">›</span>
+          <span>src</span><span class="bc-sep">›</span>
+          <span>res</span><span class="bc-sep">›</span>
+          <span>layout</span><span class="bc-sep">›</span>
+          <span style="color:var(--text-primary)">activity_main.xml</span>
+        </div>
+        <div class="code-editor" id="editor-activity_main.xml">
+          <div class="gutter" id="gutter-activity_main.xml"></div>
+          <div class="line-numbers" id="ln-activity_main.xml"></div>
+          <div class="code-lines" id="code-activity_main.xml" contenteditable="true" spellcheck="false" oninput="onCodeInput('activity_main.xml')" onkeydown="onCodeKeyDown(event,'activity_main.xml')"></div>
+        </div>
+      </div>
+
+      <!-- BUILD GRADLE -->
+      <div class="editor-view" id="view-build.gradle">
+        <div class="editor-breadcrumb">
+          <span>MyApp</span><span class="bc-sep">›</span>
+          <span>app</span><span class="bc-sep">›</span>
+          <span style="color:var(--text-primary)">build.gradle</span>
+        </div>
+        <div class="code-editor" id="editor-build.gradle">
+          <div class="gutter" id="gutter-build.gradle"></div>
+          <div class="line-numbers" id="ln-build.gradle"></div>
+          <div class="code-lines" id="code-build.gradle" contenteditable="true" spellcheck="false" oninput="onCodeInput('build.gradle')" onkeydown="onCodeKeyDown(event,'build.gradle')"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM PANEL -->
+    <div id="bottom-panel">
+      <div class="bottom-resize" id="bottom-resize"></div>
+      <div class="bottom-tabs">
+        <div class="bottom-tab active" onclick="switchBottomTab(this,'terminal')"><i class="fa fa-terminal"></i>&nbsp;Terminal</div>
+        <div class="bottom-tab" onclick="switchBottomTab(this,'logcat')"><i class="fa fa-list"></i>&nbsp;Logcat</div>
+        <div class="bottom-tab" onclick="switchBottomTab(this,'build-output')"><i class="fa fa-hammer"></i>&nbsp;Build</div>
+        <div class="bottom-tab" onclick="switchBottomTab(this,'problems')"><i class="fa fa-triangle-exclamation"></i>&nbsp;Problems</div>
+        <div style="margin-left:auto;display:flex;align-items:center;padding:0 8px;gap:4px;">
+          <button class="panel-icon-btn" onclick="clearLogs()"><i class="fa fa-trash"></i></button>
+          <button class="panel-icon-btn" onclick="toggleBottomPanel()"><i class="fa fa-chevron-down" id="bottom-toggle-icon"></i></button>
+        </div>
+      </div>
+      <div class="bottom-content" id="bottom-terminal" style="display:flex;flex-direction:column;padding:0;">
+        <div class="terminal-body" id="terminal-output" style="flex:1;"></div>
+        <div class="term-input-row" style="border-top:1px solid var(--border);padding:6px 12px;">
+          <span class="term-prompt">$</span>
+          <input class="term-input" id="term-input" placeholder="Enter command..." onkeydown="onTermInput(event)">
+        </div>
+      </div>
+      <div class="bottom-content" id="bottom-logcat" style="display:none;"></div>
+      <div class="bottom-content" id="bottom-build-output" style="display:none;"></div>
+      <div class="bottom-content" id="bottom-problems" style="display:none;"></div>
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL (AI + EMULATOR) -->
+  <div id="right-panel">
+    <div class="rp-header" id="rp-title">
+      <i class="fa fa-wand-magic-sparkles" style="color:var(--accent)"></i>
+      AI Assistant
+      <div style="margin-left:auto;display:flex;gap:4px;">
+        <button class="panel-icon-btn" id="rp-emulator-btn" onclick="showRightPanel('emulator')"><i class="fa fa-mobile-screen"></i></button>
+        <button class="panel-icon-btn" onclick="closeRightPanel()"><i class="fa fa-times"></i></button>
+      </div>
+    </div>
+    <div class="rp-body" id="rp-body-ai" style="display:flex;flex-direction:column;padding:10px;gap:8px;">
+      <div class="ai-chat" id="ai-chat">
+        <div class="ai-msg ai">
+          👋 Hi! I'm your AI coding assistant. I can help you:
+          <br><br>• Generate Kotlin/Java code
+          <br>• Fix bugs automatically
+          <br>• Convert UI descriptions to XML
+          <br>• Explain Android APIs
+          <br>• Optimize your code
+          <br><br>What would you like to build today?
+        </div>
+      </div>
+      <div style="margin-top:auto;display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="mt-btn" onclick="aiQuick('Create a RecyclerView adapter')">📋 RecyclerView</button>
+          <button class="mt-btn" onclick="aiQuick('Fix the error in my code')">🔧 Fix Error</button>
+          <button class="mt-btn" onclick="aiQuick('Add Firebase Auth')">🔥 Firebase</button>
+          <button class="mt-btn" onclick="aiQuick('Create API service with Retrofit')">🌐 Retrofit</button>
+        </div>
+        <div class="ai-input-row">
+          <textarea class="ai-input" id="ai-input" rows="2" placeholder="Ask AI to generate code, fix bugs, explain APIs..." onkeydown="aiInputKeyDown(event)"></textarea>
+          <button class="ai-send" onclick="sendAIMessage()"><i class="fa fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="rp-body" id="rp-body-emulator" style="display:none;padding:10px;">
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        <select class="form-select" style="flex:1;font-size:11px;" id="emu-version">
+          <option value="14">Android 14 (API 34)</option>
+          <option value="13">Android 13 (API 33)</option>
+          <option value="12">Android 12 (API 31)</option>
+          <option value="11">Android 11 (API 30)</option>
+        </select>
+        <button class="btn btn-success" onclick="bootEmulator()" style="font-size:11px;"><i class="fa fa-power-off"></i> Boot</button>
+      </div>
+      <div id="emulator-screen">
+        <div class="emulator-frame" id="emu-frame">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:#666;">
+            <i class="fa fa-mobile-screen" style="font-size:40px;"></i>
+            <div style="font-size:12px;">Emulator not running</div>
+            <div style="font-size:11px;color:#444;">Click Boot to start Android 14</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;">
+        <button class="btn btn-secondary" style="font-size:11px;" onclick="emuAction('home')"><i class="fa fa-house"></i> Home</button>
+        <button class="btn btn-secondary" style="font-size:11px;" onclick="emuAction('back')"><i class="fa fa-arrow-left"></i> Back</button>
+        <button class="btn btn-secondary" style="font-size:11px;" onclick="emuAction('recent')"><i class="fa fa-th-large"></i> Recent</button>
+        <button class="btn btn-secondary" style="font-size:11px;" onclick="emuAction('rotate')"><i class="fa fa-rotate"></i> Rotate</button>
+        <button class="btn btn-secondary" style="font-size:11px;" onclick="emuAction('screenshot')"><i class="fa fa-camera"></i> Shot</button>
+        <button class="btn btn-danger" style="font-size:11px;" onclick="emuAction('stop')"><i class="fa fa-stop"></i> Stop</button>
+      </div>
+      <div style="margin-top:10px;font-size:10px;color:var(--text-muted);">
+        <div style="display:flex;justify-content:space-between;"><span>CPU:</span><span style="color:var(--accent-3)" id="emu-cpu">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="emu-cpu-bar" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;"><span>RAM:</span><span style="color:var(--accent-2)" id="emu-ram">0 MB</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="emu-ram-bar" style="width:0%;background:linear-gradient(90deg,var(--accent-2),var(--accent-3))"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="status-bar">
+    <div class="status-item"><i class="fa fa-code-branch"></i> main</div>
+    <div class="status-item"><i class="fa fa-triangle-exclamation" style="color:#fbbf24"></i> 0</div>
+    <div class="status-item"><i class="fa fa-circle-xmark" style="color:#ef4444"></i> <span id="error-count">0</span></div>
+    <div class="status-spacer"></div>
+    <div class="status-item" id="cursor-pos">Ln 1, Col 1</div>
+    <div class="status-item"><i class="fa fa-indent"></i> 4</div>
+    <div class="status-item">UTF-8</div>
+    <div class="status-item">Kotlin</div>
+    <div class="status-item" style="margin-left:8px;background:rgba(255,255,255,.1);padding:1px 8px;border-radius:3px;cursor:pointer;" onclick="toggleAI()">
+      <i class="fa fa-wand-magic-sparkles"></i> AI Ready
+    </div>
+  </div>
+
+</div>
+
+<!-- MOBILE TOOLBAR -->
+<div id="mobile-toolbar">
+  <button class="mt-btn" onclick="mobileInsert('  ')">⇥ Tab</button>
+  <button class="mt-btn" onclick="mobileInsert('{')">{ </button>
+  <button class="mt-btn" onclick="mobileInsert('}')"> }</button>
+  <button class="mt-btn" onclick="mobileInsert('(')">( </button>
+  <button class="mt-btn" onclick="mobileInsert(')')"> )</button>
+  <button class="mt-btn" onclick="mobileInsert('[')">[ </button>
+  <button class="mt-btn" onclick="mobileInsert(']')"> ]</button>
+  <button class="mt-btn" onclick="mobileInsert('"')"> " </button>
+  <button class="mt-btn" onclick="mobileInsert("'")"> ' </button>
+  <button class="mt-btn" onclick="mobileInsert(';')"> ; </button>
+  <button class="mt-btn" onclick="mobileInsert(':')"> : </button>
+  <button class="mt-btn" onclick="mobileInsert('.')"> . </button>
+  <button class="mt-btn" onclick="mobileInsert('->')"> -> </button>
+  <button class="mt-btn" onclick="mobileInsert('!!')"> !! </button>
+  <button class="mt-btn" onclick="undoEdit()">↩ Undo</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  DROIDFORGE IDE — MAIN ENGINE
+// ═══════════════════════════════════════════════════════════
+
+const IDE = {
+  project: { name:'MyApp', pkg:'com.example.myapp', lang:'kotlin', minSdk:26 },
+  activeFile: 'MainActivity.kt',
+  openTabs: ['MainActivity.kt','activity_main.xml','build.gradle'],
+  files: {},
+  breakpoints: {},
+  buildLog: [],
+  termHistory: [],
+  histIdx: -1,
+  selectedTemplate: 'empty',
+  emuRunning: false,
+  rightPanelMode: null,
+  aiConversation: [],
+};
+
+// ── FILE CONTENTS ──────────────────────────────────────────
+const FILE_TEMPLATES = {
+  'MainActivity.kt': `package com.example.myapp
+
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.widget.TextView
+import android.widget.Button
+import android.view.View
+import com.google.android.material.snackbar.Snackbar
+
+/**
+ * MainActivity — Entry point of MyApp
+ * Generated by DroidForge IDE
+ */
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var tvGreeting: TextView
+    private lateinit var btnAction: Button
+    private var clickCount: Int = 0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        
+        // Initialize views
+        tvGreeting = findViewById(R.id.tvGreeting)
+        btnAction = findViewById(R.id.btnAction)
+        
+        // Setup click listener
+        btnAction.setOnClickListener { view ->
+            clickCount++
+            tvGreeting.text = "Clicked $clickCount times!"
+            Snackbar.make(view, "Hello from DroidForge! 🤖", 
+                Snackbar.LENGTH_SHORT).show()
+        }
+        
+        // Load data
+        loadUserData()
+    }
+    
+    private fun loadUserData() {
+        // TODO: Implement data loading
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        clickCount = prefs.getInt("click_count", 0)
+        if (clickCount > 0) {
+            tvGreeting.text = "Welcome back! Clicks: $clickCount"
+        }
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Save state
+        getSharedPreferences("app_prefs", MODE_PRIVATE)
+            .edit()
+            .putInt("click_count", clickCount)
+            .apply()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // Cleanup
+    }
+}`,
+
+  'activity_main.xml': `<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/tvGreeting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello, Android! 👋"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/textPrimary"
+        android:fontFamily="@font/poppins_medium"
+        app:layout_constraintBottom_toTopOf="@+id/btnAction"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.4" />
+
+    <Button
+        android:id="@+id/btnAction"
+        android:layout_width="200dp"
+        android:layout_height="56dp"
+        android:text="Tap Me!"
+        android:textSize="16sp"
+        android:backgroundTint="@color/accent"
+        android:cornerRadius="28dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvGreeting"
+        android:layout_marginTop="32dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>`,
+
+  'build.gradle': `plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'com.google.dagger.hilt.android'
+}
+
+android {
+    namespace 'com.example.myapp'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.myapp"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile(
+                'proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            debuggable true
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+    }
+}
+
+dependencies {
+    // Core
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
+    // Navigation
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.6'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.7.6'
+    
+    // Lifecycle / ViewModel
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    
+    // Hilt DI
+    implementation 'com.google.dagger:hilt-android:2.50'
+    kapt 'com.google.dagger:hilt-android-compiler:2.50'
+    
+    // Retrofit + OkHttp
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    
+    // Room Database
+    implementation 'androidx.room:room-runtime:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
+    
+    // Glide / Coil
+    implementation 'io.coil-kt:coil:2.5.0'
+    
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}`,
+};
+
+const PROJECT_TREE = [
+  {name:'MyApp',type:'folder',open:true,children:[
+    {name:'app',type:'folder',open:true,children:[
+      {name:'src',type:'folder',open:true,children:[
+        {name:'main',type:'folder',open:true,children:[
+          {name:'java/com.example.myapp',type:'folder',open:true,children:[
+            {name:'MainActivity.kt',type:'file',ext:'kt'},
+            {name:'LoginActivity.kt',type:'file',ext:'kt'},
+            {name:'data',type:'folder',open:false,children:[
+              {name:'UserRepository.kt',type:'file',ext:'kt'},
+              {name:'AppDatabase.kt',type:'file',ext:'kt'},
+            ]},
+            {name:'ui',type:'folder',open:false,children:[
+              {name:'HomeFragment.kt',type:'file',ext:'kt'},
+              {name:'ProfileFragment.kt',type:'file',ext:'kt'},
+            ]},
+            {name:'network',type:'folder',open:false,children:[
+              {name:'ApiService.kt',type:'file',ext:'kt'},
+              {name:'NetworkModule.kt',type:'file',ext:'kt'},
+            ]},
+          ]},
+          {name:'res',type:'folder',open:true,children:[
+            {name:'layout',type:'folder',open:true,children:[
+              {name:'activity_main.xml',type:'file',ext:'xml'},
+              {name:'activity_login.xml',type:'file',ext:'xml'},
+              {name:'fragment_home.xml',type:'file',ext:'xml'},
+            ]},
+            {name:'values',type:'folder',open:false,children:[
+              {name:'strings.xml',type:'file',ext:'xml'},
+              {name:'colors.xml',type:'file',ext:'xml'},
+              {name:'themes.xml',type:'file',ext:'xml'},
+            ]},
+            {name:'drawable',type:'folder',open:false,children:[
+              {name:'ic_launcher.xml',type:'file',ext:'xml'},
+            ]},
+          ]},
+          {name:'AndroidManifest.xml',type:'file',ext:'xml'},
+        ]},
+        {name:'test',type:'folder',open:false,children:[
+          {name:'ExampleUnitTest.kt',type:'file',ext:'kt'},
+        ]},
+      ]},
+      {name:'build.gradle',type:'file',ext:'gradle'},
+      {name:'proguard-rules.pro',type:'file',ext:'pro'},
+    ]},
+    {name:'build.gradle',type:'file',ext:'gradle'},
+    {name:'settings.gradle',type:'file',ext:'gradle'},
+    {name:'gradle.properties',type:'file',ext:'properties'},
+    {name:'local.properties',type:'file',ext:'properties'},
+    {name:'README.md',type:'file',ext:'md'},
+  ]},
+];
+
+// ── SYNTAX HIGHLIGHTING ────────────────────────────────────
+function highlightKotlin(code){
+  const keywords=['package','import','class','object','interface','fun','val','var','override','private','public','protected','internal','companion','data','sealed','abstract','open','final','return','if','else','when','for','while','do','in','is','as','by','get','set','init','constructor','this','super','null','true','false','lateinit','lazy','suspend','coroutine','flow','emit','collect','launch','async','await','try','catch','finally','throw','break','continue','typealias','inline','reified','crossinline','noinline'];
+  const types=['String','Int','Long','Double','Float','Boolean','Char','Byte','Short','Unit','Any','Nothing','List','MutableList','Map','MutableMap','Set','MutableSet','Array','Pair','Triple','Result','Flow','StateFlow','SharedFlow','LiveData','MutableLiveData','ViewModel','Activity','Fragment','Context','View','Bundle'];
+  
+  return code
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/(\/\/[^\n]*)/g,'<span class="cm">$1</span>')
+    .replace(/(\/\*[\s\S]*?\*\/)/g,'<span class="cm">$1</span>')
+    .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|"""[\s\S]*?""")/g,'<span class="str">$1</span>')
+    .replace(/\b(\d+(?:\.\d+)?[fLd]?)\b/g,'<span class="num">$1</span>')
+    .replace(/(@\w+)/g,'<span class="an">$1</span>')
+    .replace(new RegExp(`\\b(${keywords.join('|')})\\b`,'g'),'<span class="kw">$1</span>')
+    .replace(new RegExp(`\\b(${types.join('|')})\\b`,'g'),'<span class="ty">$1</span>')
+    .replace(/\b([a-z_]\w*)\s*(?=\()/g,'<span class="fn">$1</span>');
+}
+
+function highlightXML(code){
+  return code
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/(&lt;!--[\s\S]*?--&gt;)/g,'<span class="cm">$1</span>')
+    .replace(/(&lt;\/?)(\w[\w.:]*)/g,'$1<span class="kw">$2</span>')
+    .replace(/(\s)([\w:]+)(?==)/g,'$1<span class="fn">$2</span>')
+    .replace(/"([^"]*)"/g,'"<span class="str">$1</span>"');
+}
+
+function highlightGradle(code){
+  const keywords=['plugins','android','dependencies','defaultConfig','buildTypes','release','debug','implementation','testImplementation','androidTestImplementation','kapt','compileOptions','kotlinOptions','buildFeatures','apply','id','version','namespace','compileSdk','minSdk','targetSdk','versionCode','versionName','minifyEnabled','proguardFiles','true','false'];
+  return code
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/(\/\/[^\n]*)/g,'<span class="cm">$1</span>')
+    .replace(/('(?:[^']|\\.)*'|"(?:[^"]|\\.)*")/g,'<span class="str">$1</span>')
+    .replace(/\b(\d+(?:\.\d+)?)\b/g,'<span class="num">$1</span>')
+    .replace(new RegExp(`\\b(${keywords.join('|')})\\b`,'g'),'<span class="kw">$1</span>');
+}
+
+function highlight(code, file){
+  if(file.endsWith('.kt')) return highlightKotlin(code);
+  if(file.endsWith('.xml')) return highlightXML(code);
+  if(file.endsWith('.gradle')||file.endsWith('.gradle.kts')) return highlightGradle(code);
+  return code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── EDITOR INITIALIZATION ──────────────────────────────────
+function initEditor(file, content){
+  const codeEl = document.getElementById(`code-${file}`);
+  const lnEl = document.getElementById(`ln-${file}`);
+  const gutterEl = document.getElementById(`gutter-${file}`);
+  if(!codeEl) return;
+  
+  const lines = content.split('\n');
+  IDE.files[file] = content;
+  
+  codeEl.innerHTML = lines.map((ln,i)=>`<div class="code-line" data-line="${i+1}">${highlight(ln,file)||'&nbsp;'}</div>`).join('');
+  lnEl.innerHTML = lines.map((_,i)=>`<div style="line-height:1.6;font-size:12px;">${i+1}</div>`).join('');
+  gutterEl.innerHTML = lines.map((_,i)=>`<div style="height:20.8px;position:relative;" data-line="${i+1}"></div>`).join('');
+}
+
+function initAllEditors(){
+  Object.entries(FILE_TEMPLATES).forEach(([file,content])=>initEditor(file,content));
+}
+
+// ── TAB MANAGEMENT ────────────────────────────────────────
+function activateTab(tabEl, file){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.editor-view').forEach(v=>v.classList.remove('active'));
+  tabEl.classList.add('active');
+  const view = document.getElementById(`view-${file}`);
+  if(view) view.classList.add('active');
+  else openFileInTab(file);
+  IDE.activeFile = file;
+  updateStatusLang(file);
+}
+
+function closeTab(evt, file){
+  evt.stopPropagation();
+  const tab = document.querySelector(`.tab[data-file="${file}"]`);
+  if(!tab) return;
+  tab.remove();
+  const view = document.getElementById(`view-${file}`);
+  if(view) view.remove();
+  const remaining = document.querySelectorAll('.tab');
+  if(remaining.length) remaining[remaining.length-1].click();
+}
+
+function openFileInTab(file){
+  const ext = file.split('.').pop();
+  const colorMap={kt:'#7c67fa',java:'#f97316',xml:'#22d3ee',gradle:'#86efac',md:'#e879f9',json:'#fbbf24'};
+  const labelMap={kt:'K',java:'J',xml:'X',gradle:'G',md:'M',json:'J'};
+  const tb = document.getElementById('tabs-bar');
+  const tab = document.createElement('div');
+  tab.className='tab active';
+  tab.dataset.file=file;
+  tab.innerHTML=`<span class="tab-icon" style="color:${colorMap[ext]||'#aaa'}">${labelMap[ext]||'•'}</span><span>${file}</span><span class="tab-close" onclick="closeTab(event,'${file}')"><i class="fa fa-times"></i></span>`;
+  tab.onclick=()=>activateTab(tab,file);
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tb.appendChild(tab);
+  
+  // Create editor view
+  const ea = document.getElementById('editor-container');
+  document.querySelectorAll('.editor-view').forEach(v=>v.classList.remove('active'));
+  const view = document.createElement('div');
+  view.className='editor-view active';
+  view.id=`view-${file}`;
+  const content = FILE_TEMPLATES[file] || getDefaultContent(file);
+  view.innerHTML=`
+    <div class="editor-breadcrumb"><span>MyApp</span><span class="bc-sep">›</span><span style="color:var(--text-primary)">${file}</span></div>
+    <div class="code-editor" id="editor-${file}">
+      <div class="gutter" id="gutter-${file}"></div>
+      <div class="line-numbers" id="ln-${file}"></div>
+      <div class="code-lines" id="code-${file}" contenteditable="true" spellcheck="false" oninput="onCodeInput('${file}')" onkeydown="onCodeKeyDown(event,'${file}')"></div>
+    </div>`;
+  ea.appendChild(view);
+  initEditor(file, content);
+  IDE.activeFile = file;
+}
+
+function getDefaultContent(file){
+  const ext = file.split('.').pop();
+  if(ext==='kt') return `package com.example.myapp\n\nclass ${file.replace('.kt','')} {\n    // TODO\n}`;
+  if(ext==='xml') return `<?xml version="1.0" encoding="utf-8"?>\n<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"\n    android:layout_width="match_parent"\n    android:layout_height="match_parent"\n    android:orientation="vertical">\n\n</LinearLayout>`;
+  return '';
+}
+
+// ── CODE INPUT / EDITING ──────────────────────────────────
+function onCodeInput(file){
+  const el = document.getElementById(`code-${file}`);
+  if(!el) return;
+  IDE.files[file] = el.innerText;
+  // Live update line numbers
+  const lines = el.innerText.split('\n');
+  const lnEl = document.getElementById(`ln-${file}`);
+  if(lnEl) lnEl.innerHTML = lines.map((_,i)=>`<div style="line-height:1.6;font-size:12px;">${i+1}</div>`).join('');
+}
+
+function onCodeKeyDown(e, file){
+  if(e.key==='Tab'){
+    e.preventDefault();
+    document.execCommand('insertText',false,'    ');
+  }
+  if(e.key==='Enter'){
+    // Auto-indent
+    const sel = window.getSelection();
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    const lineText = node.textContent || '';
+    const match = lineText.match(/^(\s+)/);
+    if(match){
+      e.preventDefault();
+      document.execCommand('insertText',false,'\n'+match[1]);
+    }
+  }
+  if(e.ctrlKey||e.metaKey){
+    if(e.key==='s'){e.preventDefault();saveFile(file);}
+    if(e.key==='z'){e.preventDefault();undoEdit();}
+    if(e.key==='/'){ e.preventDefault(); toggleComment(file); }
+    if(e.key==='b'){ e.preventDefault(); showModal('build-modal'); }
+    if(e.key==='p'){ e.preventDefault(); openCommandPalette(); }
+  }
+}
+
+function saveFile(file){
+  showNotif(`Saved: ${file}`,'success');
+  addLog('system',`File saved: ${file}`,'terminal-output');
+}
+
+function toggleComment(file){
+  document.execCommand('insertText',false,'// ');
+}
+
+function undoEdit(){
+  document.execCommand('undo');
+}
+
+// ── PANEL SWITCHING ───────────────────────────────────────
+function switchPanel(panel){
+  document.querySelectorAll('.sb-btn[id]').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel-section').forEach(s=>s.classList.remove('active'));
+  const sbBtn = document.getElementById(`sb-${panel}`);
+  if(sbBtn) sbBtn.classList.add('active');
+  const section = document.getElementById(`panel-${panel}`);
+  if(section) section.classList.add('active');
+  
+  // Mobile: show panel
+  const panel_el = document.getElementById('panel');
+  if(window.innerWidth<=768){
+    panel_el.classList.add('mobile-open');
+  }
+}
+
+// ── RIGHT PANEL ───────────────────────────────────────────
+function toggleAI(){
+  if(IDE.rightPanelMode==='ai'){closeRightPanel();return;}
+  showRightPanel('ai');
+}
+
+function toggleEmulator(){
+  if(IDE.rightPanelMode==='emulator'){closeRightPanel();return;}
+  showRightPanel('emulator');
+}
+
+function showRightPanel(mode){
+  IDE.rightPanelMode = mode;
+  document.getElementById('app').classList.add('right-panel-open');
+  document.getElementById('right-panel').classList.add('mobile-open');
+  document.getElementById('rp-body-ai').style.display = mode==='ai'?'flex':'none';
+  document.getElementById('rp-body-emulator').style.display = mode==='emulator'?'block':'none';
+  document.getElementById('rp-title').querySelector('i').className = mode==='ai'?'fa fa-wand-magic-sparkles':'fa fa-mobile-screen';
+  document.getElementById('rp-title').childNodes[1].textContent = ' '+(mode==='ai'?'AI Assistant':'Android Emulator');
+}
+
+function closeRightPanel(){
+  IDE.rightPanelMode = null;
+  document.getElementById('app').classList.remove('right-panel-open');
+  document.getElementById('right-panel').classList.remove('mobile-open');
+}
+
+// ── BOTTOM PANEL ──────────────────────────────────────────
+let bottomCollapsed = false;
+function toggleBottomPanel(){
+  const bp = document.getElementById('bottom-panel');
+  const icon = document.getElementById('bottom-toggle-icon');
+  bottomCollapsed = !bottomCollapsed;
+  bp.classList.toggle('collapsed',bottomCollapsed);
+  icon.className = bottomCollapsed?'fa fa-chevron-up':'fa fa-chevron-down';
+}
+
+function switchBottomTab(el,id){
+  document.querySelectorAll('.bottom-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['terminal','logcat','build-output','problems'].forEach(p=>{
+    document.getElementById(`bottom-${p}`).style.display=p===id?'':'none';
+  });
+  if(id==='terminal') document.getElementById('bottom-terminal').style.display='flex';
+}
+
+// ── TERMINAL ──────────────────────────────────────────────
+const TERM_COMMANDS = {
+  help:()=>`Available commands:\n  gradle build      Build the project\n  gradle run        Run on device\n  gradle clean      Clean build\n  adb devices       List connected devices\n  adb install       Install APK\n  git status        Show git status\n  git log           Show commit log\n  ls                List files\n  pwd               Print working directory\n  clear             Clear terminal`,
+  ls:()=>'app/\nbuild.gradle\ngradle.properties\nlocal.properties\nsettings.gradle\nREADME.md',
+  pwd:()=>'/workspace/MyApp',
+  clear:()=>{document.getElementById('terminal-output').innerHTML='';return null;},
+  'gradle build':()=>{startBuildSimulation();return 'Starting Gradle build...'},
+  'gradle clean':()=>'> Task :app:clean\nBUILD SUCCESSFUL in 0s',
+  'adb devices':()=>'List of devices attached\nemulator-5554\tdevice',
+  'git status':()=>'On branch main\nChanges to be committed:\n  modified:   app/src/main/java/com/example/myapp/MainActivity.kt\n  added:      app/src/main/java/com/example/myapp/LoginActivity.kt',
+  'git log':()=>'commit a3f2c1d (HEAD -> main)\nAuthor: Developer <dev@example.com>\nDate:   Mon Jan 6 10:00:00 2025\n    Initial commit',
+};
+
+function onTermInput(e){
+  if(e.key!=='Enter') return;
+  const input = document.getElementById('term-input');
+  const cmd = input.value.trim();
+  if(!cmd) return;
+  IDE.termHistory.unshift(cmd);
+  IDE.histIdx = -1;
+  input.value='';
+  
+  addLog('system','$ '+cmd,'terminal-output');
+  const handler = TERM_COMMANDS[cmd];
+  const output = handler ? handler() : `bash: ${cmd}: command not found\nType 'help' for available commands.`;
+  if(output) addLog('info',output,'terminal-output');
+  
+  const to = document.getElementById('terminal-output');
+  to.scrollTop = to.scrollHeight;
+  
+  if(e.key==='ArrowUp'){
+    IDE.histIdx=Math.min(IDE.histIdx+1,IDE.termHistory.length-1);
+    input.value=IDE.termHistory[IDE.histIdx]||'';
+  }
+}
+
+// ── BUILD SYSTEM ──────────────────────────────────────────
+const BUILD_STEPS = [
+  {label:'Checking project structure...',pct:5,delay:300},
+  {label:'Running AAPT2 (resource compilation)...',pct:15,delay:600},
+  {label:'Compiling Kotlin sources...',pct:30,delay:1200},
+  {label:'Processing annotations (kapt)...',pct:45,delay:900},
+  {label:'Converting to DEX (D8)...',pct:60,delay:800},
+  {label:'Merging manifests...',pct:70,delay:500},
+  {label:'Packaging APK...',pct:80,delay:600},
+  {label:'Aligning APK (zipalign)...',pct:88,delay:400},
+  {label:'Signing APK...',pct:95,delay:500},
+  {label:'Build complete! ✅',pct:100,delay:300},
+];
+
+function startBuild(){
+  const type = document.getElementById('build-type').value;
+  document.getElementById('build-progress-section').style.display='block';
+  document.getElementById('build-btn').disabled=true;
+  document.getElementById('build-indicator').className='build-dot building';
+  document.getElementById('build-status-text').textContent='Building...';
+  addLog('build',`> Starting ${type} build...`,'bottom-build-output');
+  switchBottomTab(document.querySelectorAll('.bottom-tab')[2],'build-output');
+  startBuildSimulation(type);
+}
+
+function startBuildSimulation(type='debug'){
+  let step=0;
+  function runStep(){
+    if(step>=BUILD_STEPS.length){
+      const prog=document.getElementById('build-progress');
+      const lbl=document.getElementById('build-step-label');
+      if(prog){prog.style.width='100%';}
+      if(lbl){lbl.textContent='Build complete! APK ready to download.';}
+      document.getElementById('build-indicator').className='build-dot success';
+      document.getElementById('build-status-text').textContent='Build Succeeded';
+      const btn=document.getElementById('build-btn');
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="fa fa-download"></i> Download APK';}
+      showNotif('APK built successfully! 🎉','success');
+      addLog('success','BUILD SUCCESSFUL in 4s 2ms\nAPK: app/build/outputs/apk/debug/app-debug.apk (3.2 MB)','bottom-build-output');
+      addLog('success','BUILD SUCCESSFUL in 4s 2ms\nAPK ready.','terminal-output');
+      return;
+    }
+    const s=BUILD_STEPS[step];
+    const prog=document.getElementById('build-progress');
+    const lbl=document.getElementById('build-step-label');
+    const inline=document.getElementById('build-log-inline');
+    if(prog) prog.style.width=s.pct+'%';
+    if(lbl) lbl.textContent=s.label;
+    if(inline){inline.innerHTML+='<div style="color:var(--accent-3)">'+s.label+'</div>';inline.scrollTop=inline.scrollHeight;}
+    addLog('build','> Task :app:'+s.label,'bottom-build-output');
+    step++;
+    setTimeout(runStep,s.delay);
+  }
+  runStep();
+}
+
+// ── EMULATOR ─────────────────────────────────────────────
+function bootEmulator(){
+  IDE.emuRunning=true;
+  const frame=document.getElementById('emu-frame');
+  addLog('system','Starting Android Emulator...','terminal-output');
+  
+  // Boot animation
+  frame.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:#fff;background:#000;"><div style="font-size:40px;animation:pulse 1s infinite;">🤖</div><div style="font-size:12px;color:#666;">Booting Android 14...</div><div class="progress-bar" style="width:80%;margin-top:8px;"><div class="progress-fill" id="boot-prog" style="width:0%"></div></div></div>';
+  
+  let pct=0;
+  const boot=setInterval(()=>{
+    pct+=Math.random()*15;
+    const pb=document.getElementById('boot-prog');
+    if(pb) pb.style.width=Math.min(pct,100)+'%';
+    if(pct>=100){
+      clearInterval(boot);
+      showAndroidHome();
+      startEmuStats();
+      showNotif('Emulator booted: Android 14','success');
+      addLog('success','Emulator ready. Android 14 (API 34)','terminal-output');
+    }
+  },300);
+}
+
+function showAndroidHome(){
+  const frame=document.getElementById('emu-frame');
+  const now=new Date();
+  frame.innerHTML=`
+  <div class="emulator-status-bar">
+    <span>9:41</span>
+    <span style="display:flex;gap:4px"><i class="fa fa-signal"></i><i class="fa fa-wifi"></i><i class="fa fa-battery-full"></i></span>
+  </div>
+  <div class="emulator-content">
+    <div class="android-home">
+      <div class="android-time">${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}</div>
+      <div class="android-date">${now.toDateString()}</div>
+      <div class="android-apps">
+        <div class="android-app" onclick="emuOpenApp('MyApp')"><div class="app-icon" style="background:linear-gradient(135deg,#7c3aed,#06b6d4)">🤖</div><div class="app-label">MyApp</div></div>
+        <div class="android-app"><div class="app-icon" style="background:#1a73e8">📷</div><div class="app-label">Camera</div></div>
+        <div class="android-app"><div class="app-icon" style="background:#34a853">📞</div><div class="app-label">Phone</div></div>
+        <div class="android-app"><div class="app-icon" style="background:#ea4335">💬</div><div class="app-label">Messages</div></div>
+        <div class="android-app"><div class="app-icon" style="background:#ff6d00">🌐</div><div class="app-label">Chrome</div></div>
+        <div class="android-app"><div class="app-icon" style="background:#0f9d58">📁</div><div class="app-label">Files</div></div>
+        <div class="android-app"><div class="app-icon" style="background:#4285f4">🗺️</div><div class="app-label">Maps</div></div>
+        <div class="android-app"><div class="app-icon" style="background:#212121">⚙️</div><div class="app-label">Settings</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="emulator-nav">
+    <span class="nav-btn" onclick="emuAction('back')">◀</span>
+    <span class="nav-btn" onclick="emuAction('home')">⬤</span>
+    <span class="nav-btn" onclick="emuAction('recent')">▪▪</span>
+  </div>`;
+}
+
+function emuOpenApp(app){
+  const frame=document.getElementById('emu-frame');
+  frame.innerHTML=`
+  <div class="emulator-status-bar"><span>9:41</span><span><i class="fa fa-battery-full"></i></span></div>
+  <div class="emulator-content" style="background:linear-gradient(160deg,#0f0f1e,#1a1040);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+    <div style="font-size:48px;">🤖</div>
+    <div style="font-size:20px;font-weight:700;color:#fff;">${app}</div>
+    <div style="font-size:14px;color:rgba(255,255,255,.6);">Hello, Android! 👋</div>
+    <button style="background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;border:none;padding:12px 28px;border-radius:24px;font-size:15px;font-weight:600;cursor:pointer;" onclick="appBtnClick(this)">Tap Me!</button>
+    <div id="click-result" style="font-size:13px;color:rgba(255,255,255,.5);"></div>
+  </div>
+  <div class="emulator-nav">
+    <span class="nav-btn" onclick="showAndroidHome()">◀</span>
+    <span class="nav-btn" onclick="showAndroidHome()">⬤</span>
+    <span class="nav-btn" onclick="emuAction('recent')">▪▪</span>
+  </div>`;
+}
+
+let appClickCount=0;
+function appBtnClick(btn){
+  appClickCount++;
+  btn.textContent=`Tapped ${appClickCount}x!`;
+  const r=document.getElementById('click-result');
+  if(r) r.textContent=`Clicked ${appClickCount} times!`;
+}
+
+function emuAction(action){
+  if(action==='home') showAndroidHome();
+  if(action==='back') showAndroidHome();
+  if(action==='stop'){IDE.emuRunning=false;const f=document.getElementById('emu-frame');f.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:#666;"><i class="fa fa-mobile-screen" style="font-size:40px;"></i><div style="font-size:12px;">Emulator stopped</div></div>';}
+  if(action==='screenshot') showNotif('Screenshot saved to /screenshots/','success');
+  if(action==='rotate') showNotif('Screen rotated','info');
+  if(action==='recent') showNotif('Recent apps','info');
+}
+
+let emuStatsInterval;
+function startEmuStats(){
+  clearInterval(emuStatsInterval);
+  emuStatsInterval=setInterval(()=>{
+    if(!IDE.emuRunning) return;
+    const cpu=Math.round(10+Math.random()*30);
+    const ram=Math.round(512+Math.random()*512);
+    const cpuEl=document.getElementById('emu-cpu');
+    const ramEl=document.getElementById('emu-ram');
+    const cpuBar=document.getElementById('emu-cpu-bar');
+    const ramBar=document.getElementById('emu-ram-bar');
+    if(cpuEl) cpuEl.textContent=cpu+'%';
+    if(ramEl) ramEl.textContent=ram+' MB';
+    if(cpuBar) cpuBar.style.width=cpu+'%';
+    if(ramBar) ramBar.style.width=(ram/2048*100)+'%';
+  },2000);
+}
+
+function runApp(){
+  if(!IDE.emuRunning){
+    showRightPanel('emulator');
+    bootEmulator();
+    setTimeout(()=>{emuOpenApp(IDE.project.name);},4000);
+  } else {
+    showRightPanel('emulator');
+    emuOpenApp(IDE.project.name);
+  }
+  showNotif('Running '+IDE.project.name+' on emulator...','info');
+}
+
+// ── PROJECT MANAGEMENT ────────────────────────────────────
+let selectedTpl='empty';
+function selectTemplate(el,tpl){
+  document.querySelectorAll('.template-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTpl=tpl;
+}
+
+function createProject(){
+  const name=document.getElementById('proj-name').value||'MyApp';
+  const pkg=document.getElementById('proj-pkg').value||'com.example.myapp';
+  const lang=document.getElementById('proj-lang').value;
+  IDE.project={name,pkg,lang,minSdk:parseInt(document.getElementById('proj-minsdk').value)};
+  document.getElementById('project-name-display').textContent=name;
+  closeModal('new-project-modal');
+  showNotif(`Project "${name}" created! 🚀`,'success');
+  addLog('system',`Project created: ${name} (${pkg})`,'terminal-output');
+  addLog('system',`Template: ${selectedTpl} | Language: ${lang}`,'terminal-output');
+  renderFileTree();
+}
+
+function exportProject(){
+  showNotif('Exporting project as ZIP...','info');
+  setTimeout(()=>showNotif('Project exported: MyApp.zip (downloaded)','success'),1500);
+}
+
+// ── GIT ───────────────────────────────────────────────────
+function openGitPanel(){ switchPanel('git'); }
+function gitCommit(){
+  const msg=document.getElementById('git-commit-msg').value||'Update';
+  showNotif(`Committed: "${msg}"`,'success');
+  addLog('system',`git commit -m "${msg}"`,'terminal-output');
+  addLog('success','[main a1b2c3d] '+msg,'terminal-output');
+  document.getElementById('git-commit-msg').value='';
+}
+function gitPush(){ showNotif('Pushing to origin/main...','info'); setTimeout(()=>showNotif('Pushed to origin/main','success'),1200); }
+function gitPull(){ showNotif('Pulling from origin...','info'); setTimeout(()=>showNotif('Already up to date.','success'),800); }
+function cloneRepo(){
+  const url=document.getElementById('git-clone-url').value;
+  if(!url){showNotif('Enter a repository URL','warn');return;}
+  showNotif('Cloning repository...','info');
+  setTimeout(()=>{showNotif('Repository cloned successfully!','success');closeModal('import-modal');},2000);
+}
+
+// ── SDK / PLUGINS ─────────────────────────────────────────
+function installSDK(id){
+  showNotif(`Installing ${id}...`,'info');
+  setTimeout(()=>showNotif(`${id} installed successfully`,'success'),2000);
+}
+function installPlugin(id){
+  showNotif(`Installing plugin: ${id}...`,'info');
+  setTimeout(()=>showNotif(`Plugin "${id}" installed`,'success'),1500);
+}
+
+// ── FILE TREE ─────────────────────────────────────────────
+function renderFileTree(tree=PROJECT_TREE, container=document.getElementById('file-tree'), depth=0){
+  container.innerHTML='';
+  renderTreeNodes(tree, container, depth);
+}
+
+function renderTreeNodes(nodes, container, depth){
+  nodes.forEach(node=>{
+    const div=document.createElement('div');
+    div.className=`tree-item ${depth===0?'':'tree-indent'.repeat(Math.min(depth,3)).split(' ').join('')}`;
+    div.style.paddingLeft=(8+depth*14)+'px';
+    
+    if(node.type==='folder'){
+      const icon=node.open?'fa-folder-open':'fa-folder';
+      div.innerHTML=`<i class="fa ${icon} ti-icon file-icon-folder"></i><span class="ti-name">${node.name}</span>`;
+      div.classList.add('folder');
+      div.onclick=()=>{
+        node.open=!node.open;
+        renderFileTree();
+      };
+      container.appendChild(div);
+      if(node.open&&node.children){
+        renderTreeNodes(node.children,container,depth+1);
+      }
+    } else {
+      const extColors={kt:'file-icon-kt',java:'file-icon-java',xml:'file-icon-xml',json:'file-icon-json',gradle:'file-icon-gradle',md:'file-icon-md'};
+      const extIcons={kt:'K',java:'J',xml:'X',json:'{}',gradle:'G',md:'M',properties:'P',pro:'P'};
+      const cls=extColors[node.ext]||'';
+      const lbl=extIcons[node.ext]||'•';
+      div.innerHTML=`<span class="ti-icon ${cls}" style="font-family:var(--font-mono);font-size:10px;font-weight:700;">${lbl}</span><span class="ti-name">${node.name}</span>`;
+      div.onclick=()=>{
+        document.querySelectorAll('.tree-item').forEach(i=>i.classList.remove('active'));
+        div.classList.add('active');
+        openFileInTab(node.name);
+      };
+      container.addEventListener('contextmenu',(e)=>{e.preventDefault();showCtxMenu(e.clientX,e.clientY);});
+    }
+    container.appendChild(div);
+  });
+}
+
+function collapseAll(){
+  function collapse(nodes){nodes.forEach(n=>{if(n.type==='folder'){n.open=false;if(n.children)collapse(n.children);}});}
+  collapse(PROJECT_TREE);
+  renderFileTree();
+}
+function refreshTree(){ renderFileTree(); showNotif('File tree refreshed','info'); }
+function newFile(){ const name=prompt('File name:','NewFile.kt'); if(name) showNotif(`File created: ${name}`,'success'); }
+function newFolder(){ const name=prompt('Folder name:','new_folder'); if(name) showNotif(`Folder created: ${name}`,'success'); }
+
+// ── SEARCH ────────────────────────────────────────────────
+function doSearch(q){
+  const res=document.getElementById('search-results');
+  if(!q){res.innerHTML='';return;}
+  const results=[];
+  Object.entries(IDE.files).forEach(([file,content])=>{
+    const lines=content.split('\n');
+    lines.forEach((ln,i)=>{
+      if(ln.toLowerCase().includes(q.toLowerCase())){
+        results.push({file,line:i+1,text:ln.trim()});
+      }
+    });
+  });
+  res.innerHTML=results.slice(0,20).map(r=>`
+    <div class="search-result" onclick="openFileInTab('${r.file}')">
+      <div class="search-file">${r.file}:${r.line}</div>
+      <div class="search-match">${r.text.replace(new RegExp(q,'gi'),m=>`<mark>${m}</mark>`)}</div>
+    </div>`).join('') || '<div style="padding:12px;font-size:12px;color:var(--text-muted);">No results found</div>';
+}
+
+// ── LAYOUT DESIGNER ───────────────────────────────────────
+let dragWidget_type='';
+function dragWidget(e,type){ dragWidget_type=type; e.dataTransfer.effectAllowed='copy'; }
+function canvasDragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect='copy'; }
+function canvasDrop(e){
+  e.preventDefault();
+  const canvas=document.getElementById('layout-canvas');
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left;
+  const y=e.clientY-rect.top;
+  const w=document.createElement('div');
+  w.className='layout-widget';
+  w.style.cssText=`left:${Math.max(0,x-40)}px;top:${Math.max(0,y-16)}px;width:80px;height:32px;background:rgba(124,58,237,.2);border-radius:4px;font-size:10px;color:#c084fc;`;
+  w.textContent=dragWidget_type;
+  w.onclick=()=>w.classList.toggle('selected');
+  // Make first canvas clear
+  const placeholder=canvas.querySelector('div');
+  if(placeholder&&placeholder.textContent.includes('Drop')) placeholder.style.display='none';
+  canvas.appendChild(w);
+}
+
+function generateXMLFromCanvas(){
+  const canvas=document.getElementById('layout-canvas');
+  const widgets=[...canvas.querySelectorAll('.layout-widget')];
+  const xml=`<?xml version="1.0" encoding="utf-8"?>\n<ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"\n    android:layout_width="match_parent"\n    android:layout_height="match_parent">\n\n${widgets.map(w=>`    <${w.textContent}\n        android:layout_width="wrap_content"\n        android:layout_height="wrap_content"\n        android:layout_marginStart="${parseInt(w.style.left)||0}dp"\n        android:layout_marginTop="${parseInt(w.style.top)||0}dp"/>`).join('\n\n')}\n\n</ConstraintLayout>`;
+  FILE_TEMPLATES['activity_main.xml']=xml;
+  showNotif('XML generated from layout!','success');
+}
+function openLayoutInEditor(){ openFileInTab('activity_main.xml'); }
+
+// ── AI ASSISTANT ──────────────────────────────────────────
+async function sendAIMessage(){
+  const inp=document.getElementById('ai-input');
+  const msg=inp.value.trim();
+  if(!msg) return;
+  inp.value='';
+  
+  addAIMsg(msg,'user');
+  IDE.aiConversation.push({role:'user',content:msg});
+  
+  const typingId='typing-'+Date.now();
+  addAIMsg('⌛ Thinking...','ai',typingId);
+  
+  try{
+    const apiKey=document.getElementById('api-key-input')?.value || '';
+    const currentCode=IDE.files[IDE.activeFile]||'';
+    const systemPrompt=`You are an expert Android developer assistant inside DroidForge IDE. 
+The user is working on: ${IDE.activeFile} in project "${IDE.project.name}" (${IDE.project.lang}, minSdk ${IDE.project.minSdk}).
+Current file content (truncated):\n\`\`\`\n${currentCode.slice(0,1000)}\n\`\`\`
+Provide concise, practical Android development help. Include code snippets when relevant. Use ${IDE.project.lang} language.`;
+
+    const response=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','x-api-key':apiKey||''},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:systemPrompt,
+        messages:IDE.aiConversation,
+      })
+    });
+    
+    const data=await response.json();
+    const reply=data?.content?.[0]?.text||'Unable to get response. Check your API key in Settings.';
+    
+    const typingEl=document.getElementById(typingId);
+    if(typingEl) typingEl.innerHTML=formatAIReply(reply);
+    IDE.aiConversation.push({role:'assistant',content:reply});
+  }catch(err){
+    const typingEl=document.getElementById(typingId);
+    if(typingEl) typingEl.innerHTML='⚠️ Error: '+err.message+'<br><small>Add your API key in Settings to use AI features.</small>';
+  }
+  
+  const chat=document.getElementById('ai-chat');
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function formatAIReply(text){
+  return text
+    .replace(/```(\w*)\n([\s\S]*?)```/g,'<pre style="background:var(--bg-primary);padding:8px;border-radius:4px;overflow-x:auto;font-family:var(--font-mono);font-size:11px;margin:6px 0;border:1px solid var(--border);">$2</pre>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+}
+
+function addAIMsg(text,role,id=''){
+  const chat=document.getElementById('ai-chat');
+  const div=document.createElement('div');
+  div.className=`ai-msg ${role}`;
+  if(id) div.id=id;
+  div.innerHTML=role==='user'?text:formatAIReply(text);
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+function aiQuick(prompt){
+  document.getElementById('ai-input').value=prompt;
+  sendAIMessage();
+}
+
+function aiInputKeyDown(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAIMessage();}
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function showModal(id){ document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.add('hidden');});
+});
+
+// ── CONTEXT MENU ──────────────────────────────────────────
+function showCtxMenu(x,y){
+  const m=document.getElementById('ctx-menu');
+  m.style.left=x+'px'; m.style.top=y+'px';
+  m.classList.remove('hidden');
+}
+function ctxAction(a){
+  document.getElementById('ctx-menu').classList.add('hidden');
+  if(a==='new-file') newFile();
+  if(a==='new-folder') newFolder();
+  if(a==='delete') showNotif('File deleted','warn');
+  if(a==='rename'){ const n=prompt('Rename to:'); if(n) showNotif(`Renamed to ${n}`,'info'); }
+}
+document.addEventListener('click',()=>document.getElementById('ctx-menu').classList.add('hidden'));
+
+// ── NOTIFICATIONS ─────────────────────────────────────────
+function showNotif(msg,type='info'){
+  const wrap=document.getElementById('notif-wrap');
+  const icons={success:'fa-check-circle',error:'fa-circle-xmark',warn:'fa-triangle-exclamation',info:'fa-circle-info'};
+  const n=document.createElement('div');
+  n.className=`notif ${type}`;
+  n.innerHTML=`<i class="fa ${icons[type]||icons.info}" style="color:var(--accent-${type==='success'?'3':type==='error'?'err':type==='warn'?'warn':'2'})"></i><span>${msg}</span>`;
+  wrap.appendChild(n);
+  setTimeout(()=>{n.style.opacity='0';n.style.transform='translateX(20px)';n.style.transition='.3s';setTimeout(()=>n.remove(),300);},3500);
+}
+
+// ── LOGS ─────────────────────────────────────────────────
+function addLog(type, msg, containerId){
+  const el=document.getElementById(containerId);
+  if(!el) return;
+  const ts=new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const div=document.createElement('div');
+  div.className=`log-line ${type}`;
+  div.innerHTML=`<span class="ts">${ts}</span><span class="msg">${msg.replace(/\n/g,'<br>')}</span>`;
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+
+function clearLogs(){
+  ['terminal-output','bottom-logcat','bottom-build-output','bottom-problems'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='';
+  });
+}
+
+// ── SETTINGS ──────────────────────────────────────────────
+function setTheme(t){
+  const themes={
+    dark:{},
+    light:{},
+    monokai:{'--bg-primary':'#272822','--bg-secondary':'#1e1f1c','--accent':'#a6e22e','--syntax-kw':'#f92672','--syntax-str':'#e6db74','--syntax-fn':'#66d9ef'},
+    dracula:{'--bg-primary':'#282a36','--bg-secondary':'#21222c','--accent':'#bd93f9','--syntax-kw':'#ff79c6','--syntax-str':'#f1fa8c','--syntax-fn':'#8be9fd'},
+  };
+  if(t==='light'){document.documentElement.setAttribute('data-theme','light');}
+  else{document.documentElement.setAttribute('data-theme','dark');const vars=themes[t]||{};Object.entries(vars).forEach(([k,v])=>document.documentElement.style.setProperty(k,v));}
+}
+function toggleTheme(){const cur=document.documentElement.getAttribute('data-theme');document.documentElement.setAttribute('data-theme',cur==='light'?'dark':'light');}
+function setFontSize(sz){document.querySelectorAll('.code-lines').forEach(el=>el.style.fontSize=sz+'px');}
+function saveSettings(){closeModal('settings-modal');showNotif('Settings saved','success');}
+
+// ── MOBILE INSERT ─────────────────────────────────────────
+function mobileInsert(text){
+  const file=IDE.activeFile;
+  const el=document.getElementById(`code-${file}`);
+  if(el){el.focus();document.execCommand('insertText',false,text);}
+}
+
+// ── STATUS UPDATE ─────────────────────────────────────────
+function updateStatusLang(file){
+  const ext=file.split('.').pop();
+  const langMap={kt:'Kotlin',java:'Java',xml:'XML',json:'JSON',gradle:'Groovy',md:'Markdown',properties:'Properties'};
+  const statusEl=document.getElementById('status-bar');
+  const langItem=statusEl.querySelectorAll('.status-item');
+  if(langItem[3]) langItem[3].textContent=langMap[ext]||ext.toUpperCase();
+}
+
+// ── IMPORT / DROP ─────────────────────────────────────────
+function handleDragOver(e){ e.preventDefault(); document.getElementById('import-drop').classList.add('drag-over'); }
+function handleDrop(e){ e.preventDefault(); document.getElementById('import-drop').classList.remove('drag-over'); const file=e.dataTransfer.files[0]; if(file) handleFileSelect({files:[file]}); }
+function handleFileSelect(input){ const file=input.files[0]; if(file) showNotif(`Ready to import: ${file.name}`,'info'); }
+function importProject(){ closeModal('import-modal'); showNotif('Project imported successfully!','success'); renderFileTree(); }
+
+// ── BOTTOM RESIZE ─────────────────────────────────────────
+let resizingBottom=false,resizeStartY,resizeStartH;
+document.getElementById('bottom-resize').addEventListener('mousedown',e=>{
+  resizingBottom=true;resizeStartY=e.clientY;
+  resizeStartH=document.getElementById('bottom-panel').offsetHeight;
+  document.body.style.cursor='ns-resize';
+});
+document.addEventListener('mousemove',e=>{
+  if(!resizingBottom) return;
+  const diff=resizeStartY-e.clientY;
+  const h=Math.max(28,Math.min(500,resizeStartH+diff));
+  document.getElementById('bottom-panel').style.height=h+'px';
+});
+document.addEventListener('mouseup',()=>{resizingBottom=false;document.body.style.cursor='';});
+
+// ── LOGCAT SIMULATION ────────────────────────────────────
+const LOGCAT_ENTRIES=[
+  {type:'system',msg:'D/AndroidRuntime: >>>>> AndroidRuntime START com.android.internal.os.ZygoteInit <<<<<'},
+  {type:'info',msg:'I/System.out: (HTTPLog)-Static: isSBSettingEnabled false'},
+  {type:'info',msg:'I/art: Verification of void MainActivity.onCreate(Bundle) took 3.456ms'},
+  {type:'info',msg:'D/MainActivity: onCreate called'},
+  {type:'success',msg:'I/ViewRootImpl: ViewRoot TouchInterceptor, touch Down'},
+  {type:'warn',msg:'W/System: Ignoring header X-Firebase-Locale because its value was null.'},
+  {type:'info',msg:'D/NetworkSecurityConfig: No Network Security Config specified, using platform default'},
+  {type:'error',msg:'E/SQLiteLog: (1) table users has no column named email'},
+];
+
+function startLogcat(){
+  let i=0;
+  setInterval(()=>{
+    if(i>=LOGCAT_ENTRIES.length) i=0;
+    addLog(LOGCAT_ENTRIES[i].type,LOGCAT_ENTRIES[i].msg,'bottom-logcat');
+    i++;
+  },2500);
+}
+
+// ── COMMAND PALETTE ───────────────────────────────────────
+function openCommandPalette(){ showNotif('Command Palette — Coming Soon','info'); }
+
+// ── INIT ──────────────────────────────────────────────────
+function init(){
+  initAllEditors();
+  renderFileTree();
+  startLogcat();
+  
+  // Welcome terminal
+  addLog('system','DroidForge IDE v1.0.0 — Mobile Android Studio','terminal-output');
+  addLog('info','Project: MyApp (com.example.myapp)','terminal-output');
+  addLog('info','SDK: Android 14 (API 34) | Kotlin 1.9.22','terminal-output');
+  addLog('success','Ready. Type "help" for available commands.','terminal-output');
+  
+  // Add initial build log entry
+  addLog('info','> Configure project :app','bottom-build-output');
+  addLog('success','BUILD CONFIGURATION OK','bottom-build-output');
+  
+  // Add problems
+  addLog('warn','⚠ activity_main.xml:12: Missing contentDescription for ImageView','bottom-problems');
+  addLog('info','ℹ MainActivity.kt:8: Import can be optimized','bottom-problems');
+}
+
+init();
+</script>
+</body>
+</html>
